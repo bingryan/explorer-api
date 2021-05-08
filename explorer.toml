@@ -1,0 +1,14 @@
+[server]
+bind_address = "0.0.0.0:8088"
+secret_key = "8Xui8SN4mI+7egV/9dlfYYLGQJeEx4+DwmSQLwDVXJg="
+
+
+[log]
+log_dir = "logs/"
+log_cup = 1000
+temp_size = "100MB"
+zip_compress = true
+rolling_type = "All"
+level = "info"
+debug = true
+
