@@ -19,12 +19,23 @@ impl LogAppender for ExplorerLogAppender {
 
         let tar = Paint::blue("Explorer API").bold();
         match record.level {
-            Level::Warn | Level::Error => {
+            Level::Error => {
                 data = format!(
                     "{} {} {} {} - {}  {}\n",
                     tar,
                     &record.now,
-                    record.level,
+                    Paint::red(record.level).bold(),
+                    record.module_path,
+                    record.args,
+                    record.format_line()
+                );
+            }
+            Level::Warn => {
+                data = format!(
+                    "{} {} {} {} - {}  {}\n",
+                    tar,
+                    &record.now,
+                    Paint::yellow(record.level).bold(),
                     record.module_path,
                     record.args,
                     record.format_line()
@@ -33,7 +44,7 @@ impl LogAppender for ExplorerLogAppender {
             _ => {
                 data = format!(
                     "{} {} {} {} - {}\n",
-                    tar, &record.now, record.level, record.module_path, record.args
+                    tar, &record.now, Paint::blue(record.level).bold(), record.module_path, record.args
                 );
             }
         }

@@ -2,7 +2,7 @@ use config::{ConfigError, Config, File, Environment};
 use std::collections::HashMap;
 use std::{env, result};
 use std::path::PathBuf;
-// use meilisearch_sdk::{document::*, client::*, search::*};
+use meilisearch_sdk::client::Client;
 
 /// Debug only secret for JWT encoding & decoding.
 pub const SECRET: &'static str = "8Xui8SN4mI+7egV/9dlfYYLGQJeEx4+DwmSQLwDVXJg=";
@@ -15,8 +15,20 @@ pub const DATE_FORMAT: &'static str = "%Y-%m-%dT%H:%M:%S%.3fZ";
 
 pub const TOKEN_PREFIX: &'static str = "Token ";
 
-pub struct AppState {
-    pub secret: Vec<u8>,
+pub struct AppState<'a> {
+    pub meili_client: Client<'a>,
+}
+
+
+impl AppState<'_> {
+    pub fn new(settings: &Settings) -> AppState {
+        AppState {
+            meili_client: Client::new(
+                &settings.meilisearch.host,
+                &settings.meilisearch.apikey,
+            ),
+        }
+    }
 }
 
 
@@ -24,6 +36,12 @@ pub struct AppState {
 pub struct Server {
     pub bind_address: String,
     pub secret_key: String,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct MeiliSearch {
+    pub host: String,
+    pub apikey: String,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -42,6 +60,7 @@ pub struct ExplorerLog {
 pub struct Settings {
     pub server: Server,
     pub log: ExplorerLog,
+    pub meilisearch: MeiliSearch,
 }
 
 impl Settings {

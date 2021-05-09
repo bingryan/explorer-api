@@ -1,7 +1,10 @@
 [server]
-bind_address = "0.0.0.0:8088"
+bind_address = "0.0.0.0:8889"
 secret_key = "8Xui8SN4mI+7egV/9dlfYYLGQJeEx4+DwmSQLwDVXJg="
 
+[meilisearch]
+host = "http://192.168.2.119:7700"
+apikey = "masterKey"
 
 [log]
 log_dir = "logs/"
