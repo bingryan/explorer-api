@@ -3,7 +3,7 @@ bind_address = "0.0.0.0:8889"
 secret_key = "8Xui8SN4mI+7egV/9dlfYYLGQJeEx4+DwmSQLwDVXJg="
 
 [meilisearch]
-host = "http://192.168.2.119:7700"
+host = "http://192.168.2.19:7700"
 apikey = "masterKey"
 
 [log]
@@ -14,4 +14,6 @@ zip_compress = true
 rolling_type = "All"
 level = "info"
 debug = true
+max_size = "1024MB"
+file_name = "explorer.log"
 

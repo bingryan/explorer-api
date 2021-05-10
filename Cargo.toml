@@ -31,6 +31,7 @@ serde_json = "1.0.64"
 serde_derive = "1.0.125"
 
 config = "0.11"
+path_abs = "0.5.1"
 
 # log
 env_logger = "0.8.3"
@@ -40,7 +41,6 @@ yansi = "0.5"
 
 # db
 meilisearch-sdk = "0.8.0"
-
 num_cpus = "1.13.0"
 
 # validator

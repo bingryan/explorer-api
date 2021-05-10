@@ -1,6 +1,5 @@
-use config::{ConfigError, Config, File, Environment};
-use std::collections::HashMap;
-use std::{env, result};
+use config::{ConfigError, Config, File};
+use std::result;
 use std::path::PathBuf;
 use meilisearch_sdk::client::Client;
 
@@ -53,6 +52,8 @@ pub struct ExplorerLog {
     pub rolling_type: String,
     pub level: String,
     pub debug: bool,
+    pub max_size: String,
+    pub file_name: String,
 }
 
 

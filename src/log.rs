@@ -1,5 +1,5 @@
-use llog::{debug, info, Level};
-use fast_log::appender::{FastLogFormatRecord, FastLogRecord, LogAppender, RecordFormat};
+use llog::Level;
+use fast_log::appender::{FastLogRecord, LogAppender, RecordFormat};
 use yansi::Paint;
 use crate::config::{Settings, ExplorerLog};
 use fast_log::error::LogError;
@@ -7,15 +7,43 @@ use fast_log::wait::FastLogWaitGroup;
 use fast_log::consts::LogSize;
 use fast_log::plugin::file_split::{RollingType, FileSplitAppender};
 use std::time::Duration;
-use fast_log::plugin::console::ConsoleAppender;
-use fast_log::filter::{Filter, NoFilter};
+use fast_log::filter::NoFilter;
 use fast_log::init_custom_log;
+use std::cell::RefCell;
+use std::fs::{File, OpenOptions};
+use std::io::{Write, Seek, SeekFrom};
+use fast_log::plugin::file::FileAppender;
+use fast_log::consts::LogSize::MB;
+use std::path::{Path, PathBuf};
+use std::{env, fs};
 
-struct ExplorerLogAppender;
+struct ExplorerLogAppender {
+    file: RefCell<File>,
+    max_size: LogSize,
+}
+
+impl ExplorerLogAppender {
+    pub fn new(log_file_path: PathBuf, max_size: LogSize) -> ExplorerLogAppender {
+        Self {
+            file: RefCell::new(
+                OpenOptions::new()
+                    .create(true)
+                    .append(true)
+                    .open(log_file_path)
+                    .unwrap(),
+            ),
+            max_size,
+        }
+    }
+}
+
 
 impl LogAppender for ExplorerLogAppender {
     fn do_log(&self, record: &FastLogRecord) {
         let data;
+
+        let mut log_file = self.file.borrow_mut();
+
 
         let tar = Paint::blue("Explorer API").bold();
         match record.level {
@@ -49,6 +77,11 @@ impl LogAppender for ExplorerLogAppender {
             }
         }
         print!("{}", data);
+        log_file.write(record.formated.as_bytes());
+        log_file.flush();
+        if log_file.metadata().unwrap().len() > self.max_size.get_len() as u64 {
+            log_file.seek(SeekFrom::Start(0));
+        }
     }
 
     fn type_name(&self) -> &'static str {
@@ -56,7 +89,9 @@ impl LogAppender for ExplorerLogAppender {
     }
 }
 
-impl RecordFormat for ExplorerLogAppender {
+struct ExplorerLogRecordFormat;
+
+impl RecordFormat for ExplorerLogRecordFormat {
     fn do_format(&self, arg: &mut FastLogRecord) {
         let data;
         let now = format!("{:36}", arg.now.to_string());
@@ -87,19 +122,26 @@ impl RecordFormat for ExplorerLogAppender {
 
 impl ExplorerLog {
     pub fn init(settings: &Settings) -> Result<FastLogWaitGroup, LogError> {
-        let mut appenders: Vec<Box<dyn LogAppender>> = vec![Box::new(FileSplitAppender::new(
+        let log_dir_path = env::current_dir().unwrap()
+            .join(&settings.log.log_dir);
+        fs::create_dir_all(&log_dir_path).ok();
+
+        let explorer_appender = ExplorerLogAppender::new(
+            log_dir_path.join(&settings.log.file_name), file_size(&settings.log.max_size));
+
+        let appenders: Vec<Box<dyn LogAppender>> = vec![Box::new(FileSplitAppender::new(
             log_dir(&settings.log.log_dir),
             file_size(&settings.log.temp_size),
             rolling_type(&settings.log.rolling_type),
             settings.log.zip_compress,
             1,
-        )), Box::new(ExplorerLogAppender)];
+        )), Box::new(explorer_appender)];
         return init_custom_log(
             appenders,
             settings.log.log_cup,
             log_level(&settings.log.level),
             Box::new(NoFilter {}),
-            Box::new(ExplorerLogAppender),
+            Box::new(ExplorerLogRecordFormat),
         );
     }
 }

@@ -1,9 +1,9 @@
+#![allow(dead_code)]
 #![feature(backtrace)]
 #![feature(proc_macro_hygiene, decl_macro)]
 #[macro_use]
 extern crate serde_derive;
 
-use actix::prelude::{Addr, SyncArbiter};
 use actix_web::{
     middleware::Logger,
     web::Data,
@@ -14,7 +14,7 @@ use actix_web::{
 };
 use actix_cors::Cors;
 use std::env;
-use crate::config::{AppState, SECRET, Settings, ExplorerLog, CONFIG_FILE};
+use crate::config::{AppState, Settings, ExplorerLog, CONFIG_FILE};
 
 mod config;
 mod route;
